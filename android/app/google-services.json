@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "895060035988",
+    "project_id": "e-commerce-app-mm-tools",
+    "storage_bucket": "e-commerce-app-mm-tools.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:895060035988:android:9b7b683684d2925f2ea781",
+        "android_client_info": {
+          "package_name": "com.example.tradenest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAj6gk9j7ApJgGCxnbktbyGNI6P-DeOt3w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
