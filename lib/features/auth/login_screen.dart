@@ -1,6 +1,10 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'signup_screen.dart';
+import '../../screens/home_screen.dart';
+
+
+
 
 // TODO: add flutter_svg package
 import 'package:flutter_svg/flutter_svg.dart';
@@ -11,7 +15,7 @@ class SignInScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.white,  
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text("Sign In"),
@@ -196,11 +200,21 @@ class _SignInFormState extends State<SignInForm> {
 
           // Sign In Button
           ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                _formKey.currentState!.save();
-              }
-            },
+  onPressed: () {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+
+      // Redirect to Home Screen
+     Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => const HomeScreen(),
+  ),
+);
+
+    }
+  },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF22A45D),
               foregroundColor: Colors.white,
