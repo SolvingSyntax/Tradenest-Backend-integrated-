@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'product_detail_screen.dart'; // 🔥 Imported the detail screen
 
 class GrinderScreen extends StatelessWidget {
   const GrinderScreen({super.key});
 
-  final List<String> grinders = const [
-    "Angle Grinder",
-    "Bench Grinder",
-    "Die Grinder",
-    "Straight Grinder",
-    "Cordless Grinder",
-    "Mini Grinder",
+  // 🔥 Updated to a List of Maps to hold both the name and a dummy price
+  final List<Map<String, String>> grinders = const [
+    {"name": "Angle Grinder", "price": "₹2,999"},
+    {"name": "Bench Grinder", "price": "₹5,499"},
+    {"name": "Die Grinder", "price": "₹3,199"},
+    {"name": "Straight Grinder", "price": "₹4,599"},
+    {"name": "Cordless Grinder", "price": "₹6,999"},
+    {"name": "Mini Grinder", "price": "₹1,499"},
   ];
 
   @override
@@ -27,17 +29,35 @@ class GrinderScreen extends StatelessWidget {
             childAspectRatio: 2.5,
           ),
           itemBuilder: (context, index) {
-            return Container(
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Text(
-                grinders[index],
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+            final grinder = grinders[index]; // Get the current grinder data
+
+            // 🔥 Wrapped the Container in an InkWell to make it clickable
+            return InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () {
+                // Navigate to the ProductDetailScreen and pass the specific name and price
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProductDetailScreen(
+                      name: grinder["name"]!,
+                      price: grinder["price"]!,
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Text(
+                  grinder["name"]!, // Display the name from our updated list
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
               ),
             );
           },

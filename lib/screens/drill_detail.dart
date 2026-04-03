@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'product_detail_screen.dart'; // 🔥 Don't forget to import the detail screen!
+import 'product_detail_screen.dart'; // 1. Added the import
 
 class DrillScreen extends StatelessWidget {
   const DrillScreen({super.key});
 
-  final List<String> drills = const [
-    "Cordless Drill",
-    "Hammer Drill",
-    "Impact Drill",
-    "Rotary Drill",
-    "Bench Drill",
-    "Magnetic Drill",
-    "Right Angle Drill",
-    "Core Drill",
+  // 2. Updated the list to hold both names and dummy prices
+  final List<Map<String, String>> drills = const [
+    {"name": "Cordless Drill", "price": "₹3,499"},
+    {"name": "Hammer Drill", "price": "₹4,299"},
+    {"name": "Impact Drill", "price": "₹5,999"},
+    {"name": "Rotary Drill", "price": "₹6,199"},
+    {"name": "Bench Drill", "price": "₹12,499"},
+    {"name": "Magnetic Drill", "price": "₹18,999"},
+    {"name": "Right Angle Drill", "price": "₹4,599"},
+    {"name": "Core Drill", "price": "₹22,999"},
   ];
 
   @override
@@ -32,18 +33,18 @@ class DrillScreen extends StatelessWidget {
             childAspectRatio: 2.5,
           ),
           itemBuilder: (context, index) {
-            
-            // 🔥 NEW: Wrapped your Container in an InkWell to make it clickable
-            return InkWell(
-              borderRadius: BorderRadius.circular(12), // Keeps the ripple effect inside the rounded corners
+            final drill = drills[index]; // Get the current drill
+
+            // 3. Wrapped the Container in a GestureDetector
+            return GestureDetector(
               onTap: () {
-                // Navigate to the ProductDetailScreen when tapped
+                // Navigate to the ProductDetailScreen and pass the data
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => ProductDetailScreen(
-                      name: drills[index], // Passes the name of the clicked drill
-                      price: "₹4,999",     // Placeholder price
+                      name: drill["name"]!,
+                      price: drill["price"]!,
                     ),
                   ),
                 );
@@ -56,7 +57,7 @@ class DrillScreen extends StatelessWidget {
                   border: Border.all(color: Colors.grey.shade300),
                 ),
                 child: Text(
-                  drills[index],
+                  drill["name"]!, // Display the name from the map
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontWeight: FontWeight.w500,
@@ -64,7 +65,6 @@ class DrillScreen extends StatelessWidget {
                 ),
               ),
             );
-            
           },
         ),
       ),

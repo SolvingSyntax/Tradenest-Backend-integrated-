@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // We import this so we can access the globalCart!
+import 'home_screen.dart'; // Gives us access to globalWishlist and globalCart
 
-class CartScreen extends StatefulWidget {
-  const CartScreen({super.key});
+class WishlistScreen extends StatefulWidget {
+  const WishlistScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
+  State<WishlistScreen> createState() => _WishlistScreenState();
 }
 
-class _CartScreenState extends State<CartScreen> {
+class _WishlistScreenState extends State<WishlistScreen> {
   static const primary = Color(0xFF1F2937);
   static const bg = Color(0xFFF9FAFB);
   static const accent = Color(0xFFF59E0B);
@@ -25,7 +25,7 @@ class _CartScreenState extends State<CartScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          "My Cart",
+          "My Wishlist",
           style: TextStyle(
             color: primary,
             fontWeight: FontWeight.bold,
@@ -34,28 +34,23 @@ class _CartScreenState extends State<CartScreen> {
         centerTitle: true,
       ),
       
-      // We check if the cart is empty first
-      body: globalCart.isEmpty 
-          ? _buildEmptyCart() 
-          : _buildCartList(),
-          
-      // A checkout button at the bottom (only shows if cart has items)
-      bottomNavigationBar: globalCart.isNotEmpty 
-          ? _buildCheckoutButton() 
-          : null,
+      // If the wishlist is empty, show the empty state, otherwise show the list
+      body: globalWishlist.isEmpty 
+          ? _buildEmptyWishlist() 
+          : _buildWishlist(),
     );
   }
 
-  /// 🔹 UI FOR WHEN THE CART IS EMPTY
-  Widget _buildEmptyCart() {
+  /// 🔹 UI FOR WHEN THE WISHLIST IS EMPTY
+  Widget _buildEmptyWishlist() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.shopping_cart_outlined, size: 80, color: Colors.grey.shade400),
+          Icon(Icons.favorite_border, size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
           const Text(
-            "Your cart is empty",
+            "Nothing here yet",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -64,36 +59,21 @@ class _CartScreenState extends State<CartScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Looks like you haven't added any tools yet.",
+            "Save your favorite tools for later!",
             style: TextStyle(color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: accent,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () => Navigator.pop(context), // Goes back to home
-            child: const Text(
-              "Start Shopping",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
           ),
         ],
       ),
     );
   }
 
-  /// 🔹 UI FOR WHEN ITEMS ARE IN THE CART
-  Widget _buildCartList() {
+  /// 🔹 UI FOR WHEN ITEMS ARE IN THE WISHLIST
+  Widget _buildWishlist() {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: globalCart.length,
+      itemCount: globalWishlist.length,
       itemBuilder: (context, index) {
-        final item = globalCart[index];
+        final item = globalWishlist[index];
         
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
@@ -118,7 +98,7 @@ class _CartScreenState extends State<CartScreen> {
                   color: bg,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.handyman, color: primary, size: 30),
+                child: const Icon(Icons.handyman, color: Colors.redAccent, size: 30),
               ),
               const SizedBox(width: 16),
               
@@ -148,13 +128,32 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ),
               
+              // Move to Cart Button
+              IconButton(
+                icon: const Icon(Icons.add_shopping_cart, color: primary),
+                onPressed: () {
+                  // Add to cart
+                  globalCart.add({
+                    "name": item["name"]!,
+                    "price": item["price"]!,
+                  });
+                  
+                  // Show popup
+                  ScaffoldMessenger.of(context).showSnackBar(
+                     SnackBar(
+                        content: Text('${item["name"]} moved to Cart!'),
+                        behavior: SnackBarBehavior.floating,
+                     ),
+                  );
+                },
+              ),
+
               // Delete Button
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                icon: const Icon(Icons.delete_outline, color: Colors.grey),
                 onPressed: () {
-                  // 🔥 setState is crucial! It tells the screen to redraw itself without the deleted item
                   setState(() {
-                    globalCart.removeAt(index);
+                    globalWishlist.removeAt(index);
                   });
                 },
               ),
@@ -162,48 +161,6 @@ class _CartScreenState extends State<CartScreen> {
           ),
         );
       },
-    );
-  }
-
-  /// 🔹 CHECKOUT BUTTON AT THE BOTTOM
-  Widget _buildCheckoutButton() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          )
-        ],
-      ),
-      child: SafeArea(
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          onPressed: () {
-            // Checkout logic goes here
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Proceeding to Checkout!')),
-            );
-          },
-          child: const Text(
-            "Proceed to Checkout",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

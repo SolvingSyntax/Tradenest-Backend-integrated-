@@ -3,6 +3,14 @@ import 'cart_screen.dart';
 import 'drill_screen.dart';
 import 'grinder_screen.dart';
 import 'saw_screen.dart';
+import 'product_detail_screen.dart';
+import 'wishlist_screen.dart';
+import 'offers_screen.dart';
+import 'account_screen.dart'; // 🔥 Added the Account Screen import
+
+// 🔥 Global Memory Lists
+List<Map<String, String>> globalCart = [];
+List<Map<String, String>> globalWishlist = [];
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -44,18 +52,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const Spacer(),
                     _iconButton(Icons.search),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const CartScreen(),
-                          ),
-                        );
-                      },
-                      child: _iconButton(Icons.shopping_cart_outlined),
-                    ),
                   ],
                 ),
               ),
@@ -160,9 +156,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       child: const _categoryCard(Icons.precision_manufacturing, "Saws"),
                     ),
-
-                    const _categoryCard(Icons.settings, "Wrenches"),
-                    const _categoryCard(Icons.construction, "Tool Kits"),
                   ],
                 ),
               ),
@@ -198,6 +191,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     _productCard("Makita Grinder", "₹3,799"),
                     _productCard("DeWalt Saw", "₹6,499"),
                     _productCard("Stanley Wrench", "₹2,199"),
+                    _productCard("Milwaukee Impact", "₹8,999"),
+                    _productCard("Hitachi Router", "₹5,499"),
+                    _productCard("B+D Sander", "₹2,999"),
+                    _productCard("Bosch Jig Saw", "₹4,299"),
                   ],
                 ),
               ),
@@ -208,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
 
-      /// 🔥 UPDATED BOTTOM NAV
+      /// 🔥 BOTTOM NAV
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16),
         child: Container(
@@ -228,10 +225,10 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(Icons.home, 0),
-              _buildNavItem(Icons.search, 1),
+              _buildNavItem(Icons.favorite_border, 1),
               _buildNavItem(Icons.shopping_cart, 2),
-              _buildNavItem(Icons.receipt_long, 3),
-              _buildNavItem(Icons.person, 4),
+              _buildNavItem(Icons.receipt_long, 3), 
+              _buildNavItem(Icons.person, 4), // 🔥 The Account Button
             ],
           ),
         ),
@@ -251,7 +248,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
         switch (index) {
           case 1:
-            // TODO: Search Screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const WishlistScreen()),
+            );
             break;
           case 2:
             Navigator.push(
@@ -260,10 +260,17 @@ class _HomeScreenState extends State<HomeScreen> {
             );
             break;
           case 3:
-            // TODO: Orders Screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OffersScreen()),
+            );
             break;
           case 4:
-            // TODO: Profile Screen
+            // 🔥 UPDATED: Navigates to the Account Screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AccountScreen()),
+            );
             break;
         }
       },
@@ -323,7 +330,7 @@ class _categoryCard extends StatelessWidget {
           CircleAvatar(
             radius: 24,
             backgroundColor: const Color(0xFFF59E0B).withOpacity(0.15),
-           child: Icon(icon, color: Color(0xFF1F2937)),
+            child: Icon(icon, color: const Color(0xFF1F2937)),
           ),
           const SizedBox(height: 8),
           Text(title, textAlign: TextAlign.center),
@@ -341,43 +348,88 @@ class _productCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Expanded(
-            child: Center(
-              child: Icon(Icons.build, size: 50),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductDetailScreen(
+              name: name,
+              price: price,
             ),
           ),
-          Text(name,
-              style:
-                  const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          const SizedBox(height: 6),
-          Text(
-            price,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFF59E0B),
-              fontSize: 16,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Expanded(
+              child: Center(
+                child: Icon(Icons.build, size: 50),
+              ),
             ),
-          )
-        ],
+            Text(
+              name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 6),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  price,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFFF59E0B),
+                    fontSize: 16,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    globalCart.add({
+                      "name": name,
+                      "price": price,
+                    });
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('$name added to cart!'),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1F2937),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add_shopping_cart,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
 }
-
-
