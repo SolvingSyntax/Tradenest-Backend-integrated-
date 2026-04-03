@@ -323,7 +323,7 @@ class _categoryCard extends StatelessWidget {
           CircleAvatar(
             radius: 24,
             backgroundColor: const Color(0xFFF59E0B).withOpacity(0.15),
-            child: Icon(icon, color: primary),
+           child: Icon(icon, color: Color(0xFF1F2937)),
           ),
           const SizedBox(height: 8),
           Text(title, textAlign: TextAlign.center),
