@@ -69,7 +69,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return SwitchListTile(
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500, color: primary)),
       value: value,
-      activeColor: accent,
+      activeThumbColor: accent,
       onChanged: onChanged,
     );
   }

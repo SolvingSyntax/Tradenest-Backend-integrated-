@@ -50,3 +50,7 @@ lib/generated_plugin_registrant.dart
 
 # Private Environment Variables
 .env
+# Node.js Backend Security
+backend/node_modules/
+backend/.env
+backend/serviceAccountKey.json
