@@ -3,6 +3,8 @@ import 'cart_screen.dart';
 import 'drill_screen.dart';
 import 'grinder_screen.dart';
 import 'saw_screen.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'product_detail_screen.dart';
 import 'wishlist_screen.dart';
 import 'offers_screen.dart';
@@ -398,19 +400,42 @@ class _productCard extends StatelessWidget {
                   ),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    globalCart.add({
-                      "name": name,
-                      "price": price,
-                    });
+                  onTap: () async {
+                    // 🔥 DATABASE CHANGE STARTS HERE
+                    final user = FirebaseAuth.instance.currentUser;
+                    
+                    if (user != null) {
+                      try {
+                        // We save directly to the user's personal cart collection
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user.uid)
+                            .collection('cart')
+                            .add({
+                          "name": name,
+                          "price": price,
+                          "addedAt": FieldValue.serverTimestamp(),
+                        });
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('$name added to cart!'),
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('$name added to TradeNest Cart!'),
+                              duration: const Duration(seconds: 2),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: const Color(0xFF1F2937),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        debugPrint("Firestore Error: $e");
+                      }
+                    } else {
+                      // If somehow not logged in
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please login to add items")),
+                      );
+                    }
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),

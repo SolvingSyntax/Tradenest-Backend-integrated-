@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Firebase Secret Keys (CRITICAL for Security)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+lib/generated_plugin_registrant.dart
+
+# Private Environment Variables
+.env

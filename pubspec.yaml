@@ -32,14 +32,10 @@ dependencies:
     sdk: flutter
   firebase_core: ^2.27.0
   firebase_auth: ^4.17.0
-
-  cupertino_icons: ^1.0.8
+  lucide_icons: ^0.257.0
+  cloud_firestore: ^4.15.0
+  google_sign_in: 6.2.1  # 🔥 Pin to this stable version (No ^ symbol)
   flutter_svg: ^2.0.10
-  google_sign_in: ^7.2.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 
   # The "flutter_lints" package below contains a set of recommended lints to

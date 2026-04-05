@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // We import this so we can access the globalCart!
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../models/order_model.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -12,6 +14,11 @@ class _CartScreenState extends State<CartScreen> {
   static const primary = Color(0xFF1F2937);
   static const bg = Color(0xFFF9FAFB);
   static const accent = Color(0xFFF59E0B);
+
+  CollectionReference get _cartCollection => FirebaseFirestore.instance
+      .collection('users')
+      .doc(FirebaseAuth.instance.currentUser!.uid)
+      .collection('cart');
 
   @override
   Widget build(BuildContext context) {
@@ -33,20 +40,31 @@ class _CartScreenState extends State<CartScreen> {
         ),
         centerTitle: true,
       ),
-      
-      // We check if the cart is empty first
-      body: globalCart.isEmpty 
-          ? _buildEmptyCart() 
-          : _buildCartList(),
-          
-      // A checkout button at the bottom (only shows if cart has items)
-      bottomNavigationBar: globalCart.isNotEmpty 
-          ? _buildCheckoutButton() 
-          : null,
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _cartCollection.orderBy('addedAt', descending: true).snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: accent));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return _buildEmptyCart();
+          }
+
+          final cartDocs = snapshot.data!.docs;
+
+          return Column(
+            children: [
+              Expanded(child: _buildCartList(cartDocs)),
+              // Pass the docs to the button so we can process them
+              _buildCheckoutButton(cartDocs),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  /// 🔹 UI FOR WHEN THE CART IS EMPTY
   Widget _buildEmptyCart() {
     return Center(
       child: Column(
@@ -56,45 +74,35 @@ class _CartScreenState extends State<CartScreen> {
           const SizedBox(height: 16),
           const Text(
             "Your cart is empty",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: primary,
-            ),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: primary),
           ),
           const SizedBox(height: 8),
-          Text(
-            "Looks like you haven't added any tools yet.",
-            style: TextStyle(color: Colors.grey.shade600),
-          ),
+          Text("Looks like you haven't added any tools yet.",
+              style: TextStyle(color: Colors.grey.shade600)),
           const SizedBox(height: 24),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: accent,
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            onPressed: () => Navigator.pop(context), // Goes back to home
-            child: const Text(
-              "Start Shopping",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Start Shopping",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
           ),
         ],
       ),
     );
   }
 
-  /// 🔹 UI FOR WHEN ITEMS ARE IN THE CART
-  Widget _buildCartList() {
+  Widget _buildCartList(List<QueryDocumentSnapshot> docs) {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
-      itemCount: globalCart.length,
+      itemCount: docs.length,
       itemBuilder: (context, index) {
-        final item = globalCart[index];
-        
+        final item = docs[index].data() as Map<String, dynamic>;
+        final docId = docs[index].id;
+
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.all(12),
@@ -111,7 +119,6 @@ class _CartScreenState extends State<CartScreen> {
           ),
           child: Row(
             children: [
-              // Tool Icon
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -121,41 +128,26 @@ class _CartScreenState extends State<CartScreen> {
                 child: const Icon(Icons.handyman, color: primary, size: 30),
               ),
               const SizedBox(width: 16),
-              
-              // Tool Name and Price
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item["name"]!,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: primary,
-                      ),
+                      item["name"] ?? "Unknown Tool",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primary),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      item["price"]!,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                        color: accent,
-                      ),
+                      "₹${item["price"] ?? "0"}",
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: accent),
                     ),
                   ],
                 ),
               ),
-              
-              // Delete Button
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                onPressed: () {
-                  // 🔥 setState is crucial! It tells the screen to redraw itself without the deleted item
-                  setState(() {
-                    globalCart.removeAt(index);
-                  });
+                onPressed: () async {
+                  await _cartCollection.doc(docId).delete();
                 },
               ),
             ],
@@ -165,8 +157,8 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  /// 🔹 CHECKOUT BUTTON AT THE BOTTOM
-  Widget _buildCheckoutButton() {
+  // 🔥 UPDATED: Added logic to handle the checkout process
+  Widget _buildCheckoutButton(List<QueryDocumentSnapshot> cartDocs) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -184,22 +176,73 @@ class _CartScreenState extends State<CartScreen> {
           style: ElevatedButton.styleFrom(
             backgroundColor: primary,
             padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           ),
-          onPressed: () {
-            // Checkout logic goes here
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Proceeding to Checkout!')),
-            );
+          onPressed: () async {
+            try {
+              final user = FirebaseAuth.instance.currentUser;
+              if (user == null) return;
+
+              // 1. Calculate Total
+              double total = 0;
+              List<Map<String, dynamic>> orderItems = [];
+
+              for (var doc in cartDocs) {
+                final data = doc.data() as Map<String, dynamic>;
+                // Handle price parsing safely
+                double price = double.tryParse(data['price'].toString()) ?? 0.0;
+                total += price;
+                
+                orderItems.add({
+                  'productId': doc.id,
+                  'name': data['name'],
+                  'price': price,
+                  'quantity': 1, // Defaulting to 1 for now
+                });
+              }
+
+              // 2. Create Order Object
+              final newOrder = OrderModel(
+                userId: user.uid,
+                totalAmount: total,
+                status: "pending",
+                createdAt: DateTime.now(),
+                address: "Mumbai, Maharashtra", // Dynamic later
+                items: orderItems,
+              );
+
+              // 3. Write to Firestore using a Batch for safety
+              WriteBatch batch = FirebaseFirestore.instance.batch();
+              
+              // Add Order
+              DocumentReference orderRef = FirebaseFirestore.instance.collection('orders').doc();
+              batch.set(orderRef, newOrder.toMap());
+
+              // Clear Cart (Delete all items in user's cart subcollection)
+              for (var doc in cartDocs) {
+                batch.delete(doc.reference);
+              }
+
+              await batch.commit();
+
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Order Placed Successfully!'), backgroundColor: Colors.green),
+                );
+                // Future Step: Navigator.push to Success Screen
+              }
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                );
+              }
+            }
           },
-          child: const Text(
-            "Proceed to Checkout",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          child: const Center(
+            child: Text(
+              "Proceed to Checkout",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
         ),
